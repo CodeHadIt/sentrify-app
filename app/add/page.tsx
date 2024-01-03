@@ -11,7 +11,7 @@ const AddProjectPage = () => {
       {!isCorrectKey ? (
         <PassForm setIsCorrectKey={setIsCorrectKey} />
       ) : (
-        <AddProjectForm />
+        <AddProjectForm formType='create' />
       )}
     </section>
   );

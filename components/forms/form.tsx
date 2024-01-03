@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -13,13 +13,14 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { Loader } from "lucide-react";
 
 const FormSchema = z.object({
   name: z.string().min(1, {
     message: "Name must not be empty",
   }),
   website: z.string().min(1, {
-    message: "website must not be empty",
+    message: "Website must not be empty",
   }),
   twitter: z.string().min(1, {
     message: "Twitter must not be empty",
@@ -28,11 +29,11 @@ const FormSchema = z.object({
     message: "Category must not be empty",
   }),
   chain: z.string().min(1, {
-    message: "chain must not be empty",
+    message: "Cain must not be empty",
   }),
 });
 
-const AddProjectForm = () => {
+const AddProjectForm = ({ formType }: { formType: "create" | "request" }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -43,45 +44,66 @@ const AddProjectForm = () => {
       category: "",
     },
   });
+  const {errors, isSubmitSuccessful, isSubmitting } = form.formState
 
   const handleAdd = async (data: z.infer<typeof FormSchema>) => {
-    const {name, website, twitter, category, chain} = data;
+    const { name, website, twitter, category, chain } = data;
 
     try {
-        const response = await fetch("/api/projects", {
-          method: "POST",
-          headers: { "content-Type": "application/json" },
-          body: JSON.stringify({
-            name, 
-            website,
-            twitter,
-            category,
-            chain
-          })
-        });
-        console.log(response);
-        if(!response.ok) {
-            throw new Error("Failed to create")
-        }
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          website,
+          twitter,
+          category,
+          chain,
+        }),
+      });
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Failed to create");
+      }
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
+  };
 
-  }
+  const handleRequest = async (data: z.infer<typeof FormSchema>) => {
+    const { name, website, twitter, category, chain } = data;
 
-  const getProject = async () => {
-    const url = "https&$$www*binance*com";
-    const response = await fetch(`api/projects/${url}`);
-    const data = await response.json();
-
-    console.log(data)
-  }
+    try {
+      const response = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          website,
+          twitter,
+          category,
+          chain,
+        }),
+      });
+      form.reset();
+      if (!response.ok) {
+        form.setError("root.myErr", {
+          type: "Custom",
+          message: "Failed to add requested Dapp",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }      
+  };
 
   return (
     <div className="border rounded-xl p-10 flex flex-col space-y-8">
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleAdd)}
+          onSubmit={form.handleSubmit(
+            formType === "create" ? handleAdd : handleRequest
+          )}
           className="space-y-5 pt-6"
         >
           <FormField
@@ -157,9 +179,7 @@ const AddProjectForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="space-x-1">
-                  <span className="text-[16px] font-medium">
-                    Project Chains
-                  </span>
+                  <span className="text-[16px] font-medium">Project Chain</span>
                   <span className="text-red-600 font-medium">*</span>
                 </FormLabel>
                 <FormControl>
@@ -198,18 +218,33 @@ const AddProjectForm = () => {
             )}
           />
 
-          <Button
-            type="submit"
-            // disabled={status === "loading"}
-            className="w-full space-x-2"
-          >
-            {/* {status === "loading" && (
-              <Loader className="h-5 w-5 animate-spin" />
-            )} */}
-            <span>Create</span>
-          </Button>
+          {formType === "create" ? (
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full space-x-2"
+            >
+              {isSubmitting && <Loader className="animate-spin" />}
+              <span>{isSubmitting ? "Creating" : "Create"}</span>
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full space-x-2"
+            >
+              {isSubmitting && <Loader className="animate-spin" />}
+              <span>{isSubmitting ? "Requesting" : "Request"}</span>
+            </Button>
+          )}
         </form>
       </Form>
+      {isSubmitSuccessful && (
+        <p className="text-green-600">Dapp Requested Successfully.</p>
+      )}
+      {errors.root && (
+        <p className="text-red-600">{errors.root?.myErr?.message}</p>
+      )}
     </div>
   );
 };

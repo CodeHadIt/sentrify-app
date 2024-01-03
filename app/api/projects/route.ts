@@ -39,7 +39,7 @@ export const POST = async (req:NextRequest) => {
     } catch (error) {
         console.log(error);
         return NextResponse.json(
-          { message: `Error adding ${name} to peojects collection` },
+          { message: `Error adding ${name} to projects collection` },
           { status: 500 }
         );
     }
