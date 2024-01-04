@@ -10,16 +10,18 @@ export const POST = async (req: NextRequest) => {
     
     try {
         const googleAuth = new google.auth.GoogleAuth({
-            credentials: {
+          credentials: {
             client_email: process.env.GOOGLE_CLIENT_EMAIL,
             client_id: process.env.GOOGLE_CLIENT_ID,
-            private_key: process.env.GOOGLE_SERVICE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            },
-            scopes: [
+            private_key: process.env.GOOGLE_SERVICE_PRIVATE_KEY?.split(
+              String.raw`\n`
+            ).join("\n"),
+          },
+          scopes: [
             "https://www.googleapis.com/auth/drive",
             "https://www.googleapis.com/auth/drive.file",
             "https://www.googleapis.com/auth/spreadsheets",
-            ],
+          ],
         });
 
         const sheets = google.sheets({ auth: googleAuth, version: "v4" });
